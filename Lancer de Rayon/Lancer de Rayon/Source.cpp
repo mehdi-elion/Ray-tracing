@@ -466,8 +466,7 @@ public:
 		double cg = textures[textureID][(y*texture_w + x)*3 + 1] / 255.0 ;
 		double cb = textures[textureID][(y*texture_w + x)*3 + 2] / 255.0 ;
 		
-		//Vector NewColor(cr, cg, cb);
-		Vector NewColor(cr*0.4, cg*0.4, cb*0.4);		// pour attébuer la brillance dde la fille
+		Vector NewColor(cr, cg, cb);
 		
 
 		//std::cout << "\n cr = " << cr << " cb = " << cb << " cg = " << cg << "\n" << std::endl;
@@ -897,13 +896,13 @@ public:
 
 		}
 
-		if (pivot < i0 || pivot >= i1 - 1 || i1 == i0 + 1)  return;
+		if (pivot <= i0 || pivot >= i1)  return;
 
 		node->fg = new BVH();
-		makeBVH(node->fg, i0, pivot+1);
+		makeBVH(node->fg, i0, pivot);
 
 		node->fd = new BVH();
-		makeBVH(node->fd, pivot+1, i1);
+		makeBVH(node->fd, pivot, i1);
 
 	}
 
@@ -1318,52 +1317,7 @@ public:
 
 
 
-		/*
-		// Coefficient d'extinction
-		Vector CP = I.C - P;
-		double t = sqrt(CP.norm2());
-		double beta = 0.04;
-		double int_ext = beta * t;
-		double T = exp(-int_ext);
-
-
-		// Contribution du milieu participant
-		Vector Lv(0.0, 0.0, 0.0);
-		double phase_func = 0.3 / (4 * M_PI);
-
-		Vector random_dir(0.0, 0.0, 0.0);
-
-		double r1 = u(random);
-		double r2 = u(random);
-		Vector result;
-		random_dir.x = 2.0 * cos(2.0*M_PI*r1)*sqrt(r2*(1 - r2));
-		random_dir.y = 2.0 * sin(2.0*M_PI*r1)*sqrt(r2*(1 - r2));
-		random_dir.z = 1 - 2.0 * r2;
-
-		double proba_dir = 1.0 / (4.0 * M_PI);
-
-		double random_t = u(random) * t;
-		double proba_t = 1.0 / t;
-		double int_ext_partielle = beta * random_t;
-
-		Ray L_ray(I.C + random_dir * random_t, random_dir);
-		Vector P_lum, N_lum, lum(0.0, 0.0, 0.0);
-		int indS_lum;
-		Vector albedo_lum(0.0, 0.0, 0.0);
-		nbRebounds = nbRebounds - 1;
-		bool intersect_lum = this->intersect(L_ray, P_lum, N_lum, indS_lum, albedo_lum);
-		if (intersect_lum) {
-			Vector lum = getColor2(L, Intensity, L_ray, P_lum, N_lum, indS_lum, albedo_lum, nbRebounds);
-		}
-		
-		double ext = beta;
-		Lv = lum * phase_func * ext * exp(-int_ext_partielle);
-
-		return Color * T + Lv ;
-		*/
-
 		return Color;
-
 
 	}
 
@@ -1438,7 +1392,7 @@ int main() {
 	int H = 512;
 
 	// Nombre de chemins aléatoires pour intégration
-	int nbRays = 10;
+	int nbRays = 1000;
 
 	// Nombre de rebonds par chemin
 	int nbRebounds = 4;
@@ -1471,7 +1425,7 @@ int main() {
 	Vector O_miroir(-12, 0, 8);
 	double R_miroir = 10;
 	Vector A_miroir(0.0, 0.25, 1.0);
-	Sphere S_miroir(O_miroir, R_miroir, A_miroir, true, 1.0);
+	Sphere S_miroir(O_miroir, R_miroir, A_miroir, false, 1.0);
 
 	// Sphère sol
 	Vector O_sol(0, -1000, 0);
@@ -1510,10 +1464,8 @@ int main() {
 	Sphere S_murG(O_murG, R_murG, A_murG, false, 1);
 
 	// Sphère transparente
-	//Vector O_trans(12, 0, 0);
-	//double R_trans = 10;
-	Vector O_trans(12, 10, 20);
-	double R_trans = 7;
+	Vector O_trans(12, 0, 0);
+	double R_trans = 10;
 	Vector A_trans(0.85, 0.25, 0.85);
 	Sphere S_trans(O_trans, R_trans, A_trans, false, 1);
 	//Sphere S_trans(O_trans, R_trans, A_trans, false, 1.4);
@@ -1563,7 +1515,7 @@ int main() {
 	const Vector translate(0.0, 26.0, -10.0);  /// y et z permutés
 	//Matrix Rot = rotation(Vector(0.0, 0.0, 1.0), M_PI / 4.0);  /// y et z permutés
 	Matrix Rot = rotation(Vector(0.0, 0.0, 1.0), 0.0);  /// y et z permutés
-	bool mirror = false;
+	bool mirror = true;
 	double n = 1;
 	const char* mtl_file = "Beautiful Girl.mtl";
 	//Vector A10(0.20, 0.20, 0.20);
@@ -1600,12 +1552,12 @@ int main() {
 	Sc.addObject(& S_murG);			// 4
 	Sc.addObject(& S_murFront);		// 5
 	Sc.addObject(& S_murBack);		// 6
-	Sc.addObject(& S_trans);		// 7
-	Sc.addObject(& S_miroir);		// 8	
-	//Sc.addObject(& S_diff);		// 9
-	//Sc.addObject(& S_diff1);		// 10
-	//Sc.addObject(& S_diff2);		// 11
-	Sc.addObject(& Girl);			// 12
+	//Sc.addObject(& S_trans);		// 7
+	//Sc.addObject(& S_miroir);		// 8	
+	Sc.addObject(& S_diff);			// 9
+	Sc.addObject(& S_diff1);		// 10
+	Sc.addObject(& S_diff2);		// 11
+	//Sc.addObject(& Girl);			// 12
 
 	
 	/* Farandole
@@ -1679,7 +1631,7 @@ int main() {
 				// Incrément compteur
 				countRays = countRays + 1.0;
 
-				/* Rayon initial (version anti-aliasing) */
+				/* Rayon initial (version anti-aliasing) 
 				double theta_rand = 2*M_PI*u(random);
 				double R_rand = u(random);
 				double u_rand = R_rand * cos(theta_rand);
@@ -1688,10 +1640,10 @@ int main() {
 				V.normalize();
 				//V = RotCam * V;
 				Ray Rayon_ij(C, V);
-				 
+				*/ 
 
 
-				/* Rayon initial (version anti-aliasing + depth-of-field) 
+				/* Rayon initial (version anti-aliasing + depth-of-field) */
 				double theta_rand = 2 * M_PI*u(random);
 				double R_rand = u(random);
 				double u_rand = R_rand * cos(theta_rand);
@@ -1706,7 +1658,7 @@ int main() {
 				Vector new_direction = end - start;
 				new_direction.normalize();
 				Ray Rayon_ij(start, new_direction);
-				*/
+				
 				
 
 
